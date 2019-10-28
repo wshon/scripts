@@ -164,10 +164,16 @@ scan -
                 code = prompt('Please input code: ')
             res = get_scan_report(s, code, token)
             code = ''
-            content = Unit.decrypt(res.content)
-            data_json = json.loads(content)
-            file = dave_scan_report(data_json)
-            print(f'保存到 {file} 成功')
+            try:
+                content = Unit.decrypt(res.content)
+                data_json = json.loads(content)
+                file = dave_scan_report(data_json)
+                print(f'保存到 {file} 成功')
+            except ValueError:
+                data_json = json.loads(res.content)
+                if data_json['code'] == '305':
+                    token = None
+                print(data_json['msg'])
         if text == 'scan':
             while not code:
                 code = prompt('Please input code: ')
