@@ -1,0 +1,4 @@
+requests
+pycryptodome
+openpyxl
+prompt_toolkit
