@@ -13,6 +13,7 @@
 @Desc    : 
     
 """
+import json
 from datetime import datetime
 
 import requests
@@ -27,17 +28,26 @@ URL_WORK_TIME_DEL = HOST + r'/default/ame_common/wxworktime/com.primeton.eos.ame
 
 
 class Request:
-    def __init__(self):
+    def __init__(self, sc_key):
+        self.sc_key = sc_key
         self.session = requests.Session()
         self.get = self.session.get
         self.post = self.session.post
+
+    def report(self, text, desp=''):
+        if self.sc_key:
+            self.post('https://sc.ftqq.com/{sc_key}.send'.format(sc_key=self.sc_key), {
+                'text': text,
+                'desp': desp,
+            })
+        pass
 
     pass
 
 
 class Ame(Request):
-    def __init__(self, username, password):
-        super().__init__()
+    def __init__(self, username, password, sc_key=None):
+        super().__init__(sc_key)
         self.username = username
         self.password = password
 
@@ -132,6 +142,7 @@ if __name__ == '__main__':
     ame = Ame('username', 'password')
     if not ame.login():
         print('登陆失败')
+        ame.report('登陆失败')
         exit(-1)
     day = datetime.now().strftime('%Y-%m-%d')
     wt_list_rsp = ame.find_work_time(date_start=day, date_end=day)
@@ -148,5 +159,10 @@ if __name__ == '__main__':
             rep_content='******'  # 工作内容 【字符串】
         )
         ame.add_work_time(work_time)
+        wt_list = wt_list_rsp.json()['rdLabor']
+        if len(wt_list) == 1:
+            print('签到成功')
+            ame.report('签到成功', json.dumps(work_time, ensure_ascii=False))
     else:
         print('当日已存在工时')
+        ame.report('当日已存在工时', json.dumps(wt_list[0], ensure_ascii=False))
