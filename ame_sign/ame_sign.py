@@ -24,7 +24,7 @@ URL_VCODE_CHECK = HOST + r'/default/org.gocom.abframe.auth.LoginManager.verifyCo
 URL_LOGIN = HOST + r'/default/sso.login?SSOLOGOUT=true'
 URL_WORK_TIME_ADD = HOST + r'/default/ame_common/wxworktime/com.primeton.rdmgr.labor.input.rdlabordetailbiz.saveAllRdLaborDetails1.biz.ext'
 URL_WORK_TIME_LIST = HOST + r'/default/ame_common/wxworktime/com.primeton.eos.ame_common.wx_worktime.wxTimeList.biz.ext'
-URL_WORK_TIME_DEL = HOST + r'/default/ame_common/wxworktime/com.primeton.eos.ame_common.wx_worktime.wxWorTimeDelete.biz.ext?'
+URL_WORK_TIME_DEL = HOST + r'/default/ame_common/wxworktime/com.primeton.eos.ame_common.wx_worktime.wxWorTimeDelete.biz.ext'
 
 
 class Request:
@@ -156,7 +156,7 @@ if __name__ == '__main__':
             user_org_id=000000,  # 填报部门ID 【数字】
             act_hours='8.0',  # 总工时 【等于0为数字，大于0为字符串】
             otw_hours=0,  # 其中加班 【等于0为数字，大于0为字符串】
-            rep_content='上交所'  # 工作内容 【字符串】
+            rep_content='******'  # 工作内容 【字符串】
         )
         ame.add_work_time(work_time)
         wt_list = wt_list_rsp.json()['rdLabor']
