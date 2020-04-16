@@ -23,6 +23,8 @@ DEV_PWD = ''
 DD_NAME = ''
 DD_PWD = ''
 
+MAX_TRY = 5
+
 
 def unlock(dev, password=None):
     if dev.info.get('screenOn'):
@@ -37,8 +39,8 @@ def unlock(dev, password=None):
         dev(resourceId=f'com.android.systemui:id/key{x}').click()
 
 
-def dd_login(sess, username, password):
-    activity = dd.app_current().get('activity')
+def dt_login(sess, username, password):
+    activity = sess.app_current().get('activity')
     if activity == 'com.alibaba.android.user.login.SignUpWithPwdActivity':
         sess(resourceId="com.alibaba.android.rimet:id/login_mode_pwd").click()
         sess(resourceId="com.alibaba.android.rimet:id/et_phone_input").set_text(username)
@@ -46,42 +48,53 @@ def dd_login(sess, username, password):
         sess(resourceId="com.alibaba.android.rimet:id/btn_next").click()
 
 
-def dd_goto_sign(sess):
+def dt_goto_sign(sess):
     sess(resourceId="com.alibaba.android.rimet:id/search_btn").click()
     sess(resourceId="android:id/search_src_text").set_text('智能工作助理')
     sess.xpath(
         '//*[@resource-id="com.alibaba.android.rimet:id/ll_contacts_container"]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.RelativeLayout[1]').click()
-    sess(resourceId="com.alibaba.android.rimet:id/et_sendmessage").set_text('打卡')
-    sess(resourceId="com.alibaba.android.rimet:id/btn_send").click()
-    sess(description="立即打卡").click()
-    sleep(3)
+    # sess(resourceId="com.alibaba.android.rimet:id/et_sendmessage").set_text('打卡')
+    # sess(resourceId="com.alibaba.android.rimet:id/btn_send").click()
+    # sess(description="立即打卡").click()
+    sess(description="打卡").click()
 
 
 if __name__ == '__main__':
-    d = u2.connect(DEVICE)
+    dev = u2.connect(DEVICE)
     # d.unlock()  # 实现的不太好
-    unlock(d, DEV_PWD)
+    unlock(dev, DEV_PWD)
+    dt = dev.session("com.alibaba.android.rimet")
 
-    with d.session("com.alibaba.android.rimet") as dd:
-        dd_login(dd, DD_NAME, DD_PWD)
-        dd_goto_sign(dd)
-        if not dd(description="已进入考勤范围").exists:
-            print('未找到 已进入考勤范围')
+    for x in range(MAX_TRY):
+        dt_login(dt, DD_NAME, DD_PWD)
+        dt_goto_sign(dt)
+        dt(description="已进入考勤范围").wait(10.0)
+        if dt(description="已进入考勤范围").exists:
+            break
+        dt.restart()
 
-        on_duty_time = datetime.strptime(str(datetime.now().date()) + '9:00', '%Y-%m-%d%H:%M')
-        off_duty_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
+    on_duty_time = datetime.strptime(str(datetime.now().date()) + '9:00', '%Y-%m-%d%H:%M')
+    off_duty_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 
-        if datetime.now() < on_duty_time:
-            if not dd(description="上班打卡").exists:
-                dd(description="上班打卡").click()
+    if datetime.now() < on_duty_time:
+        dt(description="上班打卡").wait(10.0)
+        if not dt(description="上班打卡").exists:
+            dt(description="上班打卡").click()
         else:
-            print('未到达上班打卡时间')
+            print('已打卡或找不到打卡按钮')
+    else:
+        print('未到达上班打卡时间')
 
-        if datetime.now() > off_duty_time:
-            if not dd(description="下班打卡").exists:
-                dd(description="下班打卡").click()
+    if datetime.now() > off_duty_time:
+        dt(description="下班打卡").wait(10.0)
+        if not dt(description="下班打卡").exists:
+            dt(description="下班打卡").click()
         else:
-            print('未到达下班打卡时间')
+            print('已打卡或找不到打卡按钮')
+    else:
+        print('未到达下班打卡时间')
 
-    if d.info.get('screenOn'):
-        d.press("power")
+    dt.close()
+
+    if dev.info.get('screenOn'):
+        dev.press("power")
