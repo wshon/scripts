@@ -56,6 +56,7 @@ def dt_goto_sign(sess):
     # sess(resourceId="com.alibaba.android.rimet:id/et_sendmessage").set_text('打卡')
     # sess(resourceId="com.alibaba.android.rimet:id/btn_send").click()
     # sess(description="立即打卡").click()
+    sess(description="打卡").must_wait()
     sess(description="打卡").click()
 
 
@@ -68,8 +69,7 @@ if __name__ == '__main__':
     for x in range(MAX_TRY):
         dt_login(dt, DD_NAME, DD_PWD)
         dt_goto_sign(dt)
-        dt(description="已进入考勤范围").wait(10.0)
-        if dt(description="已进入考勤范围").exists:
+        if dt(description="已进入考勤范围").wait():
             break
         dt.restart()
 
@@ -77,8 +77,7 @@ if __name__ == '__main__':
     off_duty_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 
     if datetime.now() < on_duty_time:
-        dt(description="上班打卡").wait(10.0)
-        if not dt(description="上班打卡").exists:
+        if not dt(description="上班打卡").wait():
             dt(description="上班打卡").click()
         else:
             print('已打卡或找不到打卡按钮')
@@ -86,8 +85,7 @@ if __name__ == '__main__':
         print('未到达上班打卡时间')
 
     if datetime.now() > off_duty_time:
-        dt(description="下班打卡").wait(10.0)
-        if not dt(description="下班打卡").exists:
+        if not dt(description="下班打卡").wait():
             dt(description="下班打卡").click()
         else:
             print('已打卡或找不到打卡按钮')
