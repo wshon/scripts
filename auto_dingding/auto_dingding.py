@@ -17,6 +17,7 @@ import logging
 from datetime import datetime
 from time import sleep
 
+import requests
 import uiautomator2 as u2
 
 DEVICE = ''
@@ -24,12 +25,23 @@ DEV_PASSWORD = ''
 DT_USERNAME = ''
 DT_PASSWORD = ''
 
+SC_KEY = ''
+
 MAX_TRY = 5
 
 logging.basicConfig(
     format='%(levelname)s: %(asctime)s [%(pathname)s:%(lineno)d] %(message)s',
     level=logging.INFO
 )
+
+
+def notice(text, desp=''):
+    if SC_KEY:
+        requests.post('https://sc.ftqq.com/{sc_key}.send'.format(sc_key=SC_KEY), {
+            'text': text,
+            'desp': desp or text,
+        })
+    pass
 
 
 def unlock(d, password=None):
@@ -140,9 +152,11 @@ if __name__ == '__main__':
 
                     if dt(description="上班打卡").click_exists():
                         logging.info('上班打卡【成功】')
+                        notice('上班卡手动打卡成功')
                         break
                     elif dt(description="上班时间09:00").sibling(description="打卡时间").exists:
                         logging.info('上班打卡已被完成')
+                        notice('上班卡已经通过其他方式打好了')
                         break
                     else:
                         logging.info('找不到上班打卡按钮')
@@ -150,9 +164,11 @@ if __name__ == '__main__':
                     logging.info('开始下班打卡')
                     if dt(description="下班打卡").click_exists():
                         logging.info('下班打卡【成功】')
+                        notice('下班卡手动打卡成功')
                         break
                     elif dt(description="下班时间18:00").sibling(description="打卡时间").exists:
                         logging.info('下班打卡已被完成')
+                        notice('下班卡已经通过其他方式打好了')
                         break
                     else:
                         logging.info('找不到下班打卡按钮')
