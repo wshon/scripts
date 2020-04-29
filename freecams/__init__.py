@@ -1,21 +1,69 @@
 import asyncio
 import json
+from pathlib import Path
 from urllib import parse
 
+import aiofiles
 import aiohttp
 
 from freecams.FCTYPE import *
 
 BASE = 'https://assets.mfcimg.com/_js/serverconfig.js'
+SERVER_MAP = {}
 
 
-def get_serv(camserv):
+async def init_server_map():
+    global SERVER_MAP
+    async with aiohttp.ClientSession() as session:
+        async with session.get(BASE) as response:
+            data_raw = await response.text()
+    data = json.loads(data_raw)
+    SERVER_MAP = data
+
+
+def get_avatar_url(uid, large=True):
+    return f'https://img.mfcimg.com/photos2/{uid[:3]}/{uid}/avatar.{"100x100" if large else "100x100"}.jpg'
+
+
+def get_snap_url(svr_id, uid, large=True):
+    return f'https://snap.mfcimg.com/snapimg/{svr_id}/{"320x240" if large else "107x80"}/mfc_1{uid}'
+
+
+def get_live_url(svr_id, uid):
+    return f'https://video{svr_id}.myfreecams.com/NxServer/ngrp:mfc_1{uid}.f4v_mobile/playlist.m3u8'
+
+
+async def save_snap(svr_id, uid):
+    path = Path('snap')
+    if not path.exists():
+        path.mkdir()
+    elif not path.is_dir():
+        path.rename('snap_rename')
+        path.mkdir()
+    snap_url = get_snap_url(svr_id, uid)
+    live_url = get_live_url(svr_id, uid)
+    snap_name = snap_url.rsplit('/', 1)[-1] + '.jpg'
+    live_name = snap_url.rsplit('/', 1)[-1] + '.txt'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(snap_url) as response:
+            async with aiofiles.open(path / snap_name, mode='wb') as f:
+                await f.write(await response.read())
+            async with aiofiles.open(path / live_name, mode='w') as f:
+                await f.write(live_url)
+
+
+def get_server_id(svr_no):
     """
     from BASE
-    :param camserv:
+    :param svr_no:
     :return:
     """
-    pass
+    global SERVER_MAP
+    svr = str(svr_no)
+    if svr not in SERVER_MAP['h5video_servers']:
+        return '0'
+    else:
+        return SERVER_MAP['h5video_servers'][svr][5:]
 
 
 def fc_fun_default(packet):
@@ -26,11 +74,12 @@ def fc_fun_sessionstate(packet):
     payload = packet['payload']
     json_str = parse.unquote(payload)
     data = json.loads(json_str)
-    uid = data['uid']
-    camserv = data['u']['camserv']
-    avatar = f'https://img.mfcimg.com/photos2/{uid[:3]}/{uid}/avatar.100x100.jpg'
-    serv = get_serv(camserv)
-    snap = f'https://snap.mfcimg.com/snapimg/{serv}/107x80/mfc_1{uid}'
+    uid = str(data['uid'])
+    svr_id = get_server_id(data.get('u', {'camserv': 0}).get('camserv'))
+    if svr_id == '0':
+        return
+    loop = asyncio.get_event_loop()
+    loop.create_task(save_snap(svr_id, uid))
     pass
 
 
@@ -70,6 +119,7 @@ def deal_msg(msg):
 
 
 async def test():
+    await init_server_map()
     session = aiohttp.ClientSession()
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.14 Safari/537.36 Edg/83.0.478.10',
