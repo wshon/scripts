@@ -116,6 +116,10 @@ class User:
         return bool(self.svr_id)
 
     @property
+    def best_name(self):
+        return self.uid + '_' + self.svr_id
+
+    @property
     def uid(self):
         return str(self.data['uid'])
 
@@ -151,6 +155,9 @@ class User:
     def get_live_url(self):
         return f'https://video{self.svr_id}.myfreecams.com/NxServer/ngrp:mfc_1{self.uid}.f4v_mobile/playlist.m3u8'
 
+    async def check(self):
+        return self._is_jpg(await self.get_snap())
+
     async def get_snap(self):
         if not self.is_available:
             return
@@ -161,14 +168,21 @@ class User:
     async def save_snap(self, path, with_url=True):
         if not self.is_available:
             return
+        snap = await self.get_snap()
+        if not self._is_jpg(snap):
+            return
         path = Path(path)
-        snap_name = self.snap_url.rsplit('/', 1)[-1] + '.jpg'
+        snap_name = self.best_name + '.jpg'
         async with aiofiles.open(path / snap_name, mode='wb') as f:
-            await f.write(await self.get_snap())
+            await f.write(snap)
         if with_url:
-            live_name = self.snap_url.rsplit('/', 1)[-1] + '.txt'
+            live_name = self.best_name + '.txt'
             async with aiofiles.open(path / live_name, mode='w') as f:
                 await f.write(self.live_url)
+
+    @staticmethod
+    def _is_jpg(data):
+        return data[:2] == b'\xff\xd8' and data[-2:] == b'\xff\xd9'
 
 
 class FreeCams:
@@ -182,21 +196,10 @@ class FreeCams:
         "fcsws_20180422\n\0",
         "1 0 0 20071025 0 1/guest:guest\n\0"
     ]
-
     fun_map = {}
-
     svr_map = None
 
-    def __init__(self):
-        self.session = aiohttp.ClientSession()
-
-    async def init_svr_map(self):
-        async with self.session.get(self.svr_url, headers=self.headers) as response:
-            data_raw = await response.text()
-        self.svr_map = json.loads(data_raw)
-
-    def reg_fun(self, cmd, fun):
-        self.fun_map[cmd] = partial(fun, fc=self)
+    _session = None
 
     def _default_fun(self, packet, fc):
         pass
@@ -224,7 +227,24 @@ class FreeCams:
             self._deal_ws_msg(msg)
             msg_data_left = msg_data_left[6 + data_len:]
 
-    async def run_forever(self):
+    @property
+    def session(self):
+        if not self._session:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    def reg_fun(self, cmd, fun):
+        self.fun_map[cmd] = partial(fun, fc=self)
+
+    def add_user(self, data):
+        return User(self, data)
+
+    async def init_svr_map(self):
+        async with self.session.get(self.svr_url, headers=self.headers) as response:
+            data_raw = await response.text()
+        self.svr_map = json.loads(data_raw)
+
+    async def run(self):
         if not self.svr_map:
             await self.init_svr_map()
         async with self.session.ws_connect(self.ws_url, headers=self.headers) as ws:
@@ -247,12 +267,13 @@ class FreeCams:
             return
         pass
 
-    def add_user(self, data):
-        return User(self, data)
+    def run_forever(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.run())
 
-
-def run_with_loop(coro):
-    asyncio.get_event_loop().create_task(coro)
+    @staticmethod
+    def run_async(coro):
+        asyncio.get_event_loop().create_task(coro)
 
 
 def fun_sessionstate(packet, fc):
@@ -268,16 +289,10 @@ def fun_sessionstate(packet, fc):
         path.rename('snap_rename')
         path.mkdir()
 
-    run_with_loop(user.save_snap(path))
-
-
-async def run():
-    fcs = FreeCams()
-    fcs.reg_fun(FcType.SESSIONSTATE, fun_sessionstate)
-    await fcs.run_forever()
-    pass
+    fc.run_async(user.save_snap(path))
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    fcs = FreeCams()
+    fcs.reg_fun(FcType.SESSIONSTATE, fun_sessionstate)
+    fcs.run_forever()
