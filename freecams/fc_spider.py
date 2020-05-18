@@ -236,7 +236,9 @@ class FreeCams:
     def reg_fun(self, cmd, fun):
         self.fun_map[cmd] = partial(fun, fc=self)
 
-    def add_user(self, data):
+    def extract_user(self, payload):
+        json_str = parse.unquote(payload)
+        data = json.loads(json_str)
         return User(self, data)
 
     async def init_svr_map(self):
@@ -276,11 +278,8 @@ class FreeCams:
         asyncio.get_event_loop().create_task(coro)
 
 
-def fun_sessionstate(packet, fc):
-    payload = packet['payload']
-    json_str = parse.unquote(payload)
-    data = json.loads(json_str)
-    user = fc.add_user(data)
+def test_fun_sessionstate(packet, fc):
+    user = fc.extract_user(packet['payload'])
 
     path = Path('snap')
     if not path.exists():
@@ -294,5 +293,5 @@ def fun_sessionstate(packet, fc):
 
 if __name__ == '__main__':
     fcs = FreeCams()
-    fcs.reg_fun(FcType.SESSIONSTATE, fun_sessionstate)
+    fcs.reg_fun(FcType.SESSIONSTATE, test_fun_sessionstate)
     fcs.run_forever()
