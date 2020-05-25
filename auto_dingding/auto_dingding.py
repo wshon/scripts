@@ -10,8 +10,8 @@
 @FileName: auto_dingding
 @Software: PyCharm
 @license : (C) Copyright 2019 by Sam Wang. All rights reserved.
-@Desc    : 
-    
+@Desc    :
+
 """
 import logging
 from datetime import datetime
@@ -93,6 +93,7 @@ def dt_login(sess, username, password):
 
 def dt_goto_sign(sess):
     logging.info('点击搜索框')
+    sess(resourceId="com.alibaba.android.rimet:id/search_btn").must_wait()
     sess(resourceId="com.alibaba.android.rimet:id/search_btn").click_gone()
 
     logging.info('输入搜索文本')
@@ -117,18 +118,16 @@ if __name__ == '__main__':
     logging.info('准备连接到远程设备')
     dev = u2.connect(DEVICE)
 
-    logging.info('开始解锁远程设备')
-    # d.unlock()  # 实现的不太好
-    unlock(dev, DEV_PASSWORD)
-
-    logging.info('开始连接到钉钉')
-    dt = dev.session("com.alibaba.android.rimet")
-
     logging.info(f'开始打卡，最大尝试次数为{MAX_TRY}次')
     for i in range(MAX_TRY):
-
         logging.info(f'第{i}次尝试打卡')
         try:
+            logging.info('开始解锁远程设备')
+            # d.unlock()  # 实现的不太好
+            unlock(dev, DEV_PASSWORD)
+
+            logging.info('开始连接到钉钉')
+            dt = dev.session("com.alibaba.android.rimet")
 
             logging.info('等待钉钉加载完成')
             dt(resourceId="com.alibaba.android.rimet:id/action_bar_root").wait()
@@ -143,38 +142,38 @@ if __name__ == '__main__':
             dt(resourceId="com.alibaba.android.rimet:id/title").wait()
 
             logging.info('开始检查打卡条件')
-            if dt(description="已进入考勤范围").wait():
-                on_duty_time = datetime.strptime(str(datetime.now().date()) + '09:00', '%Y-%m-%d%H:%M')
-                off_duty_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 
-                if datetime.now() < on_duty_time:
-                    logging.info('开始上班打卡')
+            on_duty_time = datetime.strptime(str(datetime.now().date()) + '09:00', '%Y-%m-%d%H:%M')
+            off_duty_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 
-                    if dt(description="上班打卡").click_exists():
-                        logging.info('上班打卡【成功】')
-                        notice('上班卡手动打卡成功')
-                        break
-                    elif dt(description="上班时间09:00").sibling(description="打卡时间").exists:
-                        logging.info('上班打卡已被完成')
-                        notice('上班卡已经通过其他方式打好了')
-                        break
-                    else:
-                        logging.info('找不到上班打卡按钮')
-                elif datetime.now() > off_duty_time:
-                    logging.info('开始下班打卡')
-                    if dt(description="下班打卡").click_exists():
-                        logging.info('下班打卡【成功】')
-                        notice('下班卡手动打卡成功')
-                        break
-                    elif dt(description="下班时间18:00").sibling(description="打卡时间").exists:
-                        logging.info('下班打卡已被完成')
-                        notice('下班卡已经通过其他方式打好了')
-                        break
-                    else:
-                        logging.info('找不到下班打卡按钮')
-                else:
-                    logging.info('未到达上班打卡或下班打卡时间')
+            if datetime.now() < on_duty_time:
+                logging.info('开始上班打卡')
+
+                if dt(description="上班打卡").click_exists():
+                    logging.info('上班打卡【成功】')
+                    notice('上班卡手动打卡成功')
                     break
+                elif dt(description="上班时间09:00").sibling(description="打卡时间").exists:
+                    logging.info('上班打卡已被完成')
+                    notice('上班卡已经通过其他方式打好了')
+                    break
+                else:
+                    logging.info('找不到上班打卡按钮')
+            elif datetime.now() > off_duty_time:
+                logging.info('开始下班打卡')
+                if dt(description="下班打卡").click_exists():
+                    logging.info('下班打卡【成功】')
+                    notice('下班卡手动打卡成功')
+                    break
+                elif dt(description="下班时间18:00").sibling(description="打卡时间").exists:
+                    logging.info('下班打卡已被完成')
+                    notice('下班卡已经通过其他方式打好了')
+                    break
+                else:
+                    logging.info('找不到下班打卡按钮')
+            else:
+                logging.info('未到达上班打卡或下班打卡时间')
+                break
 
         except Exception as err:
             logging.exception(err)

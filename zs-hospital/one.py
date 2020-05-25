@@ -10,6 +10,7 @@
 import collections
 import hashlib
 import json
+import logging
 import os
 import pathlib
 import time
@@ -18,6 +19,11 @@ from datetime import datetime
 import openpyxl
 import requests
 from prompt_toolkit import prompt
+
+logging.basicConfig(
+    format='%(levelname)s: %(asctime)s [%(pathname)s:%(lineno)d] %(message)s',
+    level=logging.INFO
+)
 
 FLAG = "gdz"
 urlbase = "http://m.zs-hospital.sh.cn"
@@ -88,8 +94,8 @@ class Hospital:
                 content = f.read()
             if ',' in content:
                 self.time, self.token = content.split(',')
-                self.time = int(self.time)
-                print('自动登陆成功')
+                self.time = float(self.time)
+                logging.info('自动登陆成功')
 
         self.api = HospitalAPI()
         self.phone = phone
@@ -107,13 +113,13 @@ class Hospital:
         if res.status_code != 200:
             prompt('remote server is error')
         content = json.loads(Unit.decrypt(res.content))
-        print(content)
+        logging.info(content)
         if content['code'] != '0':
-            print(content['msg'])
+            logging.info(content['msg'])
         self.token = content['data']['token']
         with open('token', 'w', encoding='utf-8') as f:
             f.write(f'{time.time()},{self.token}')
-        print('登陆成功')
+        logging.info('登陆成功')
 
     def check_login(self):
         data = collections.OrderedDict()
@@ -141,14 +147,15 @@ class Hospital:
         data = json.loads(content)
         work_book = openpyxl.Workbook()
         for checkReport in data['data']:
-            print(checkReport)
-            sheet = work_book.create_sheet(checkReport['bk'])
+            logging.info(checkReport)
+            title = f"{checkReport['bk']}-{checkReport['invkind']}" if checkReport['invkind'] else checkReport['bk']
+            sheet = work_book.create_sheet(title)
             row = 1
             for index, head in enumerate(['项目', '类型', '值', '参考值', '单位', '标志', ]):
                 sheet.cell(row, index + 1, head)
             row += 1
             for checkReportDto in checkReport['checkReportDtoList']:
-                print(checkReportDto)
+                logging.info(checkReportDto)
                 sheet.cell(row, 1, checkReportDto['invkind'].strip())
                 sheet.cell(row, 2, checkReportDto['itemna'].strip())
                 sheet.cell(row, 3, checkReportDto['pvalue'].strip())
