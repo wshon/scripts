@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+    //https://code.google.com/archive/p/crypto-js/downloads
+    function ckey(vid, tm) {
+        var Ub = window.document.URL.substr(0, 48);//https://v.qq.com/x/cover/79npj83isb0ylvq/l0029fi58lh.html
+        var Vb = window.navigator.userAgent.toLowerCase().substr(0, 48);
+        var Yb = window.navigator.appCodeName;
+        var Zb = window.navigator.appName;
+        var $b = window.navigator.platform;
+        var _loc1 = Ub + "|" + Vb + "|" + "https://v.qq.com/" + "|" + Yb + "|" + Zb + "|" + $b;
+        var _loc2_ = createGUID();
+        var _loc3_ = "|" + vid + "|" + tm + "|mg3c3b04ba|3.5.57|" + _loc2_ + "|10201|" + _loc1 + "|00|";
+        var _loc4_ = 0;
+        for (var i = 0; i < _loc3_.length; i++) {
+            char = _loc3_.charCodeAt(i),
+                _loc4_ = (_loc4_ << 5) - _loc4_ + char,
+                _loc4_ &= _loc4_;
+        }
+        var _loc5_ = "|" + _loc4_ + _loc3_;
+        console.log(_loc5_);
+        var key = CryptoJS.enc.Hex.parse("4f6bdaa39e2f8cb07f5e722d9edef314");
+        var iv = CryptoJS.enc.Hex.parse("01504af356e619cf2e42bba68c3f70f9");
+        console.log("4f6bdaa39e2f8cb07f5e722d9edef314");
+        console.log("01504af356e619cf2e42bba68c3f70f9");
+        return CryptoJS.AES.encrypt(_loc5_, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        }).ciphertext.toString().toUpperCase();
+    }
+
+    function createGUID(a) {
+        a = a || 32;
+        for (var b = "", c = 1; c <= a; c++) {
+            var d = Math.floor(16 * Math.random()).toString(16);
+            b += d
+        }
+        return b;
+    }
+
+    var c = ckey("l0029fi58lh", Math.round((new Date).getTime() / 1e3));
+    document.write(c);
+</script>
+</body>
+</html>
