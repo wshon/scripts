@@ -1,6 +1,6 @@
 ```
-mkdir -p /var/aria2/ /etc/aria2/
-touch /var/aria2/session.lock
+mkdir -p /etc/aria2/
+touch /etc/aria2/aria2.session
 wget https://github.com/muumlover/scripts/raw/master/aria2/aria2.conf -O /etc/aria2/aria2.conf
 ```
 ```
