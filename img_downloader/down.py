@@ -68,7 +68,7 @@ def download(page_url, startGallery):
         for gallery_url, gallery_title, gallery_count in gallery_urls:  # type: str,str,str
             gallery_num += 1
             if gallery_count not in gallery_title:
-                gallery_title += '[' + gallery_title + ']'
+                gallery_title += '[' + gallery_count + ']'
             else:
                 gallery_title = gallery_title.replace('【', '[').replace('】', ']')
             path = mkdir(gallery_title)
