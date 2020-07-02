@@ -81,7 +81,7 @@ def download(page_url, startGallery):
 
 
 def mkdir(name):
-    path = ".\\nothing\\" + name + "\\"
+    path = ".\\.nothing\\" + name + "\\"
     # 判断路径存在与否
     path = path.strip()  # 去掉首尾空格
     # path = path.rstrip('') # 去掉右侧 \ 符号
