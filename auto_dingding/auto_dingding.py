@@ -127,19 +127,20 @@ if __name__ == '__main__':
             unlock(dev, DEV_PASSWORD)
 
             logging.info('开始连接到钉钉')
-            dt = dev.session("com.alibaba.android.rimet")
+            dev.app_start('com.alibaba.android.rimet')
+            dev.app_wait('com.alibaba.android.rimet')
 
             logging.info('等待钉钉加载完成')
-            dt(resourceId="com.alibaba.android.rimet:id/action_bar_root").wait()
+            dev(resourceId="com.alibaba.android.rimet:id/action_bar_root").wait()
 
             logging.info('开始登录钉钉')
-            dt_login(dt, DT_USERNAME, DT_PASSWORD)
+            dt_login(dev, DT_USERNAME, DT_PASSWORD)
 
             logging.info('开始切换到打卡页面')
-            dt_goto_sign(dt)
+            dt_goto_sign(dev)
 
             logging.info('等待打卡页面加载完成')
-            dt(resourceId="com.alibaba.android.rimet:id/title").wait()
+            dev(resourceId="com.alibaba.android.rimet:id/title").wait()
 
             logging.info('开始检查打卡条件')
 
@@ -149,11 +150,11 @@ if __name__ == '__main__':
             if datetime.now() < on_duty_time:
                 logging.info('开始上班打卡')
 
-                if dt(description="上班打卡").click_exists():
+                if dev(description="上班打卡").click_exists():
                     logging.info('上班打卡【成功】')
                     notice('上班卡手动打卡成功')
                     break
-                elif dt(description="上班时间09:00").sibling(description="打卡时间").exists:
+                elif dev(description="上班时间09:00").sibling(description="打卡时间").exists:
                     logging.info('上班打卡已被完成')
                     notice('上班卡已经通过其他方式打好了')
                     break
@@ -161,11 +162,11 @@ if __name__ == '__main__':
                     logging.info('找不到上班打卡按钮')
             elif datetime.now() > off_duty_time:
                 logging.info('开始下班打卡')
-                if dt(description="下班打卡").click_exists():
+                if dev(description="下班打卡").click_exists():
                     logging.info('下班打卡【成功】')
                     notice('下班卡手动打卡成功')
                     break
-                elif dt(description="下班时间18:00").sibling(description="打卡时间").exists:
+                elif dev(description="下班时间18:00").sibling(description="打卡时间").exists:
                     logging.info('下班打卡已被完成')
                     notice('下班卡已经通过其他方式打好了')
                     break
@@ -179,12 +180,14 @@ if __name__ == '__main__':
             logging.exception(err)
 
         logging.info('重新启动钉钉')
-        dt.restart()
+        dev.app_stop('com.alibaba.android.rimet')
+        dev.app_start('com.alibaba.android.rimet')
+        dev.app_wait('com.alibaba.android.rimet')
     else:
         logging.info(f'已经尝试{MAX_TRY}次，依旧无法打卡')
 
     logging.info('关闭钉钉')
-    dt.close()
+    dev.app_stop('com.alibaba.android.rimet')
 
     logging.info('锁定设备')
     if dev.info.get('screenOn'):
