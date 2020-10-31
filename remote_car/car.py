@@ -4,7 +4,8 @@ import threading
 import time
 
 import RPi.GPIO as GPIO
-from pyPS4Controller.controller import Controller
+
+from controller import Controller
 
 
 class Car(threading.Thread):
@@ -21,6 +22,8 @@ class Car(threading.Thread):
         self._running = True
         self._speed = 0
         self._angle = 0
+        self._speed_l = 0
+        self._speed_r = 0
 
         # 设置GPIO口为BCM编码方式
         GPIO.setmode(GPIO.BCM)
@@ -47,14 +50,16 @@ class Car(threading.Thread):
         self.pwm_ENB.stop()
         GPIO.cleanup()
 
+    def stop(self):
+        self._running = False
+
     @property
     def speed(self):
         return self._speed
 
     @speed.setter
     def speed(self, value):
-        print("speed", value)
-        self._speed = value
+        self._speed = max(-100, min(100, value))
 
     @property
     def angle(self):
@@ -62,26 +67,60 @@ class Car(threading.Thread):
 
     @angle.setter
     def angle(self, value):
-        print("angle", value)
-        self._angle = value
+        self._angle = max(-100, min(100, value))
 
-    def set_l_speed(self, speed=0):
-        GPIO.output(self.IN1, GPIO.LOW if speed <= 0 else GPIO.HIGH)
-        GPIO.output(self.IN2, GPIO.LOW if speed >= 0 else GPIO.HIGH)
-        self.pwm_ENA.ChangeDutyCycle(abs(speed))
+    @property
+    def speed_l(self):
+        return self._speed_l
 
-    def set_r_speed(self, speed=0):
-        GPIO.output(self.IN3, GPIO.LOW if speed <= 0 else GPIO.HIGH)
-        GPIO.output(self.IN4, GPIO.LOW if speed >= 0 else GPIO.HIGH)
-        self.pwm_ENB.ChangeDutyCycle(abs(speed))
+    @speed_l.setter
+    def speed_l(self, value):
+        self._speed_l = max(-100, min(100, value))
 
-    def stop(self):
-        self._running = False
+    @property
+    def speed_r(self):
+        return self._speed_r
+
+    @speed_r.setter
+    def speed_r(self, value):
+        self._speed_r = max(-100, min(100, value))
+
+    @property
+    def abs_speed(self):
+        return abs(self._speed)
+
+    @property
+    def abs_angle(self):
+        return abs(self._angle)
+
+    @property
+    def sp_ang(self):
+        return max(-100, min(100, self.abs_speed - self.abs_angle))
 
     def run(self):
         while self._running:
-            self.set_l_speed(max(-100, min(100, self.speed - self.angle)))
-            self.set_r_speed(max(-100, min(100, self.speed + self.angle)))
+            if self.speed == 0:
+                self.speed_l, self.speed_r = -self.angle, self.angle
+            else:
+                temp_angle = -self.angle if self.speed * self.angle < 0 else self.angle
+                self.speed_l = self.speed - temp_angle
+                if self.speed < 0:
+                    self.speed_r = min(self.speed, temp_angle)
+                else:
+                    self.speed_r = max(self.speed, temp_angle)
+                if self.speed * self.angle < 0:
+                    self.speed_l, self.speed_r = self.speed_r, self.speed_l
+
+            print(
+                f"\rspeed: {self.speed:6.2f} angle: {self.angle:6.2f} speed_l: {self.speed_l:6.2f} speed_r: {self.speed_r:6.2f}",
+                end=" " * 5)
+
+            GPIO.output(self.IN1, GPIO.LOW if self.speed_l >= 0 else GPIO.HIGH)
+            GPIO.output(self.IN2, GPIO.LOW if self.speed_l <= 0 else GPIO.HIGH)
+            GPIO.output(self.IN3, GPIO.LOW if self.speed_r >= 0 else GPIO.HIGH)
+            GPIO.output(self.IN4, GPIO.LOW if self.speed_r <= 0 else GPIO.HIGH)
+            self.pwm_ENA.ChangeDutyCycle(abs(self.speed_l))
+            self.pwm_ENB.ChangeDutyCycle(abs(self.speed_r))
             time.sleep(0.01)
 
 
@@ -93,28 +132,22 @@ class MyController(Controller):
         self.car = car
 
     def on_L3_up(self, value):
-        print("on_L3_up: {}".format(value))
         self.car.speed = value * 100 / 32768
 
     def on_L3_down(self, value):
-        print("on_L3_down: {}".format(value))
         self.car.speed = value * 100 / 32768
 
+    def on_L3_y_at_rest(self):
+        self.car.speed = 0
+
     def on_L3_left(self, value):
-        print("on_L3_left: {}".format(value))
         self.car.angle = value * 100 / 32768
 
     def on_L3_right(self, value):
-        print("on_L3_right: {}".format(value))
         self.car.angle = value * 100 / 32768
 
     def on_L3_x_at_rest(self):
-        print("on_L3_x_at_rest")
         self.car.angle = 0
-
-    def on_L3_y_at_rest(self):
-        print("on_L3_y_at_rest")
-        self.car.speed = 0
 
 
 if __name__ == "__main__":
