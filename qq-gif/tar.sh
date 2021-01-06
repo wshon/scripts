@@ -1,0 +1,1 @@
+tar cf gifs.tar gifs/* -C ./
