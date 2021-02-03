@@ -1,0 +1,208 @@
+POST /generic/filename_check HTTP/1.1
+Host: cowtransfer.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: application/json
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------111938234925247533382624460078
+Content-Length: 188
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Cookie: JSESSIONID=B4D476AE89EF60C562BAB13F4ACA8F23; SERVERID=cc911459ee852d72727a313870635d93|1612149586|1612149409; cf-cs-k-20181214=1612149409258; gr_user_id=c5ec885d-eebf-41ad-83f0-7448f6614649; b86d645824ea1f7f_gr_session_id_d4f309d3-4261-43fd-a01d-f18c3b44ecec=false; b86d645824ea1f7f_gr_session_id=d4f309d3-4261-43fd-a01d-f18c3b44ecec; dont_show_gift_icon=true
+Pragma: no-cache
+Cache-Control: no-cache
+
+-----------------------------111938234925247533382624460078
+Content-Disposition: form-data; name="names"
+
+zh.203.564.jar
+-----------------------------111938234925247533382624460078--
+
+###
+POST /transfer/preparesend HTTP/1.1
+Host: cowtransfer.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: application/json
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------156124245915733936753086750739
+Content-Length: 1617
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Cookie: JSESSIONID=B4D476AE89EF60C562BAB13F4ACA8F23; SERVERID=cc911459ee852d72727a313870635d93|1612149589|1612149409; cf-cs-k-20181214=1612149409258; gr_user_id=c5ec885d-eebf-41ad-83f0-7448f6614649; b86d645824ea1f7f_gr_session_id_d4f309d3-4261-43fd-a01d-f18c3b44ecec=false; b86d645824ea1f7f_gr_session_id=d4f309d3-4261-43fd-a01d-f18c3b44ecec; dont_show_gift_icon=true
+Pragma: no-cache
+Cache-Control: no-cache
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="name"
+
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="totalSize"
+
+1734109
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="message"
+
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="notifyEmail"
+
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="validDays"
+
+1
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="saveToMyCloud"
+
+false
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="downloadTimes"
+
+-1
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="smsReceivers"
+
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="emailReceivers"
+
+
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="enableShareToOthers"
+
+false
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="language"
+
+cn
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="enableDownload"
+
+true
+-----------------------------156124245915733936753086750739
+Content-Disposition: form-data; name="enablePreview"
+
+true
+-----------------------------156124245915733936753086750739--
+
+
+###
+POST /transfer/beforeupload HTTP/1.1
+Host: cowtransfer.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: application/json
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------151392484327698437553004691665
+Content-Length: 1081
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Cookie: JSESSIONID=B4D476AE89EF60C562BAB13F4ACA8F23; SERVERID=cc911459ee852d72727a313870635d93|1612149589|1612149409; cf-cs-k-20181214=1612149409258; gr_user_id=c5ec885d-eebf-41ad-83f0-7448f6614649; b86d645824ea1f7f_gr_session_id_d4f309d3-4261-43fd-a01d-f18c3b44ecec=false; b86d645824ea1f7f_gr_session_id=d4f309d3-4261-43fd-a01d-f18c3b44ecec; dont_show_gift_icon=true
+Pragma: no-cache
+Cache-Control: no-cache
+
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="type"
+
+application/jar
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="fileId"
+
+
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="fileName"
+
+zh.203.564.jar
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="originalName"
+
+zh.203.564.jar
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="fileSize"
+
+1734109
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="transferGuid"
+
+62f895ee-d800-4b7e-8576-cacdf8edf93c
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="storagePrefix"
+
+anonymous
+-----------------------------151392484327698437553004691665
+Content-Disposition: form-data; name="unfinishPath"
+
+
+-----------------------------151392484327698437553004691665--
+
+
+###
+OPTIONS / HTTP/1.1
+Host: upload.qiniup.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Access-Control-Request-Method: POST
+Referer: https://cowtransfer.com/
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Pragma: no-cache
+Cache-Control: no-cache
+
+
+###
+POST / HTTP/1.1
+Host: upload.qiniup.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------455973391621895024516547434
+Content-Length: 1734861
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Pragma: no-cache
+Cache-Control: no-cache
+
+###
+POST /transfer/uploaded HTTP/1.1
+Host: cowtransfer.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: application/json
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------68026373510429519691645077397
+Content-Length: 501
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Cookie: JSESSIONID=B4D476AE89EF60C562BAB13F4ACA8F23; SERVERID=cc911459ee852d72727a313870635d93|1612149633|1612149409; cf-cs-k-20181214=1612149409258; gr_user_id=c5ec885d-eebf-41ad-83f0-7448f6614649; b86d645824ea1f7f_gr_session_id_d4f309d3-4261-43fd-a01d-f18c3b44ecec=false; b86d645824ea1f7f_gr_session_id=d4f309d3-4261-43fd-a01d-f18c3b44ecec; dont_show_gift_icon=true
+Pragma: no-cache
+Cache-Control: no-cache
+
+
+###
+POST /transfer/complete HTTP/1.1
+Host: cowtransfer.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: application/json
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------3269394544831469661097151488
+Content-Length: 213
+Origin: https://cowtransfer.com
+Connection: keep-alive
+Referer: https://cowtransfer.com/
+Cookie: JSESSIONID=B4D476AE89EF60C562BAB13F4ACA8F23; SERVERID=cc911459ee852d72727a313870635d93|1612149654|1612149409; cf-cs-k-20181214=1612149409258; gr_user_id=c5ec885d-eebf-41ad-83f0-7448f6614649; b86d645824ea1f7f_gr_session_id_d4f309d3-4261-43fd-a01d-f18c3b44ecec=false; b86d645824ea1f7f_gr_session_id=d4f309d3-4261-43fd-a01d-f18c3b44ecec; dont_show_gift_icon=true
+Pragma: no-cache
+Cache-Control: no-cache
+
+###
+
