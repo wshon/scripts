@@ -33,18 +33,19 @@ def _gen_code(init_data):
 
 
 def gen_score_code(nwt_id, score=300000):
+    if score >= 500000000:
+        return "TooManyScore"
     if not isinstance(nwt_id, bytes):
         nwt_id = bytes.fromhex(nwt_id)
-    ex_data = score.to_bytes(4, 'big')
-    init_data = header + score_code_flag + nwt_id + ex_data
+    init_data = header + score_code_flag + nwt_id + score.to_bytes(4, 'big')
     return _gen_code(init_data)
 
 
 def gen_remove_ads(nwt_id, date):
     if not isinstance(nwt_id, bytes):
         nwt_id = bytes.fromhex(nwt_id)
-    ex_data = date.get_time()
-    init_data = header + remove_ads_flag + nwt_id + ex_data
+    time = int(date.timestamp())
+    init_data = header + remove_ads_flag + nwt_id + time.to_bytes(4, 'big')
     return _gen_code(init_data)
 
 
@@ -61,8 +62,10 @@ def aes_encry(key, iv, value):
 
 
 if __name__ == '__main__':
-    code = gen_score_code('35d74db0', 500000000)
+    from datetime import datetime
+
+    code = gen_score_code('35d74db0', 250000)
     print("score_code:", code)
-    code = gen_remove_ads('35d74db0', '2022-06-10 00:00:00')
+    code = gen_remove_ads('35d74db0', datetime.strptime('2021-06-28 12:00:00', '%Y-%m-%d %H:%M:%S'))
     print("remove_ads:", code)
     # code = gen_score_code('dad98c42', True)
