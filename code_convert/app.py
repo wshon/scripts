@@ -19,7 +19,8 @@ def handle(path):
     rsp_data_ori = rsp.read()
     print('ori rsp data is: ', rsp_data_ori)
     try:
-        data_out = rsp_data_ori.decode('gbk').encode('utf-8')
+        # data_out = rsp_data_ori.decode('gbk').encode('utf-8')
+        data_out = rsp_data_ori
         print('new rsp data is: ', rsp_data_ori)
     except UnicodeDecodeError as e:
         data_out = rsp_data_ori
@@ -28,4 +29,4 @@ def handle(path):
 
 
 if __name__ == '__main__':
-    run(host='localhost', port=2008, debug=True)
+    run(host='localhost', port=3004, debug=True)
