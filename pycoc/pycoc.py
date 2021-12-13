@@ -7,15 +7,15 @@ import logging
 
 if sys.version_info.major == 2:
     from urllib import urlencode
-    from urllib2 import HTTPError, Request, urlopen
+    from urllib2 import HTTPError, Request, urlopen, ProxyHandler, build_opener, install_opener
 else:
     from urllib.parse import urlencode
     from urllib.error import HTTPError
-    from urllib.request import Request, urlopen
+    from urllib.request import Request, urlopen, ProxyHandler, build_opener, install_opener
 
 
 class COCApi:
-    def __init__(self, token, timeout=20):
+    def __init__(self, token, timeout=20, proxies=None):
         """
         Initialising requisites
 
@@ -25,6 +25,7 @@ class COCApi:
         self.token = token
         self.ENDPOINT = "https://api.clashofclans.com/v1"
         self.timeout = timeout
+        self.proxies = proxies
         self.headers = {
             "authorization": "Bearer %s" % token,
             "Accept": "application/json",
@@ -66,6 +67,10 @@ class COCApi:
         url = self.ENDPOINT + uri + "?" + urlencode(params)  # type: ignore
         try:
             try:
+                if self.proxies:
+                    proxy_support = ProxyHandler(proxies=self.proxies)
+                    opener = build_opener(proxy_support)
+                    install_opener(opener)
                 req = Request(url, headers=self.headers)
                 rsp = urlopen(req, timeout=self.timeout)
                 content = json.load(rsp)
