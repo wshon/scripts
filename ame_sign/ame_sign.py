@@ -34,6 +34,7 @@ class ApiBase(requests.Response):
     HOST = r'https://ame.primeton.com'
     URL = ''
     method = 'GET'
+    data = None
     proxies = None
 
     # proxies = {
@@ -55,7 +56,10 @@ class ApiBase(requests.Response):
             return self.req.get(url, params=kwargs, proxies=self.proxies)
             pass
         elif self.method == 'POST':
-            return self.req.post(url, data=kwargs, proxies=self.proxies)
+            if self.data == 'json':
+                return self.req.post(url, json=args[0], proxies=self.proxies)
+            else:
+                return self.req.post(url, data=kwargs, proxies=self.proxies)
             pass
         pass
 
@@ -68,6 +72,11 @@ class ApiGet(ApiBase):
 
 class ApiPost(ApiBase):
     method = 'POST'
+
+
+class ApiPostJson(ApiBase):
+    method = 'POST'
+    data = 'json'
 
 
 class AmeApi(Request):
@@ -174,7 +183,7 @@ class AmeApi(Request):
         """
         URL = '/default/ame/clipview/com.primeton.eos.ame_common.wx_worktime.wx_wtime.biz.ext'
 
-    class saveAllRdLaborDetails1(ApiPost):
+    class saveAllRdLaborDetails1(ApiPostJson):
         """
         params
         {"insertEntities":[{"actHours":"8.0","userId":"<USERID>","laborDetailId":"","laborDate":"2021-03-04","otwHours":0,"custid":<CUSTID>,"projectId":<PROJECTID>,"tasklist":"46","repContent":"信用询价接口开发","status":0,"userOrgId":<ORGID>,"isDaysOff":"0","tbly":"","omOrganization":{"orgid":<orgid>}}]}
@@ -294,29 +303,14 @@ class Ame(object):
         data = res.json()
         return data.get('isWorkday')
 
-    # def get_vcode(self):
-    #     res = self.get(URL_VCODE_SHOW)
-    #     pass
-    #
-    # def check_vcode(self):
-    #     """
-    #     :return:
-    #     """
-    #     res = self.post(URL_VCODE_CHECK, {
-    #         'code': '',
-    #         'password': self.password,
-    #         'flag': 'true',
-    #     })
-    #     pass
-
     def find_work_time(self, date_start, date_end):
         res = self.ame_api.wxTimeList(startdate=date_start, enddate=date_end)
         data = res.json()
         return data.get('rdLabor', [])
 
     def add_work_time(self, data):
-        res = self.ame_api.saveAllRdLaborDetails1(**data)
-        return not res.json()
+        res = self.ame_api.saveAllRdLaborDetails1(data)
+        return res.json()
 
     def del_work_time(self, labor_id, labor_date):
         res = self.ame_api.wxWorTimeDelete(laborDetailId=labor_id, labordate=labor_date)
@@ -342,15 +336,15 @@ class Ame(object):
                     continue
                 break
         else:
-            return "cust NotFound"
+            raise Exception("cust NotFound")
 
         # project
         if not project:
-            return "project NotFound"
+            raise Exception("project NotFound")
 
         # task
         if not task:
-            return "task NotFound"
+            raise Exception("task NotFound")
 
         # user_org
         for uo in self.get_user_org():
@@ -358,7 +352,7 @@ class Ame(object):
                 user_org = uo
                 break
         else:
-            return "project NotFound"
+            raise Exception("project NotFound")
 
         # org
         for o in self.get_org(projectID=project['projectid']):
@@ -366,7 +360,7 @@ class Ame(object):
                 org = o
                 break
         else:
-            return "project NotFound"
+            raise Exception("project NotFound")
 
         date_now = datetime.now().strftime('%Y-%m-%d')
         is_days_off = self.is_workday(date_now) == "0"
@@ -374,21 +368,21 @@ class Ame(object):
             "insertEntities": [
                 {
                     "actHours": act_hours,
-                    "userId": self.username,
-                    "laborDetailId": "",
-                    "laborDate": date_now,
-                    "otwHours": act_hours - (0 if is_days_off else 8),
                     "custid": cust['custid'],
-                    "projectId": project['projectid'],
-                    "tasklist": task['tasklist'],
-                    "repContent": rep_content,
-                    "status": 0,
-                    "userOrgId": user_org['orgid'],
                     "isDaysOff": "1" if is_days_off else "0",
-                    "tbly": "",
+                    "laborDate": date_now,
+                    "laborDetailId": "",
                     "omOrganization": {
                         "orgid": org['orgid']
-                    }
+                    },
+                    "otwHours": act_hours - (0 if is_days_off else 8),
+                    "projectId": project['projectid'],
+                    "repContent": rep_content,
+                    "status": 0,
+                    "tasklist": task['tasklist'],
+                    "tbly": "",
+                    "userId": self.username,
+                    "userOrgId": user_org['orgid'],
                 }
             ]
         }
@@ -403,6 +397,7 @@ if __name__ == '__main__':
     password = cp.get('USER', 'PASSWORD')
     sc_key = cp.get('NOTIFY', 'SC_KEY')
     taskid = cp.get('TASK', 'TASK_ID')
+    content = cp.get('TASK', 'CONTENT')
 
     ame = Ame(username, password, sc_key)
     if not ame.login():
@@ -413,10 +408,14 @@ if __name__ == '__main__':
     day = datetime.now().strftime('%Y-%m-%d')
     wt_list = ame.find_work_time(date_start=day, date_end=day)
     if len(wt_list) == 0:
-        work_time = ame.make_work_time(8, "asd", taskid=taskid)
-        ame.add_work_time(work_time)
-        wt_list = ame.find_work_time(date_start=day, date_end=day)
-        if len(wt_list) == 1:
-            ame.report('签到成功', json.dumps(work_time, ensure_ascii=False))
+        try:
+            work_time = ame.make_work_time(8, content, taskid=taskid)
+            res = ame.add_work_time(work_time)
+            assert not res, '提交工时失败：' + str(res)
+            wt_list = ame.find_work_time(date_start=day, date_end=day)
+            if len(wt_list) == 1:
+                ame.report('签到成功', json.dumps(work_time, ensure_ascii=False))
+        except Exception as e:
+            ame.report('签到失败', str(e))
     else:
         ame.report('当日已存在工时', json.dumps(wt_list[0], ensure_ascii=False))
