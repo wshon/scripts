@@ -204,6 +204,7 @@ class AmeApi(Request):
 
 class Report(Request):
     def __init__(self, sc_key):
+        super().__init__()
         self.sc_key = sc_key
         self.session = requests.Session()
         self.get = self.session.get
@@ -212,21 +213,22 @@ class Report(Request):
 
 class Ame(object):
 
-    def __init__(self, username, password, sc_key=None):
+    def __init__(self, username, password, push_key=None):
         self.ame_api = AmeApi()
         self.username = username
         self.password = password
-        self.sc_key = sc_key
+        self.push_key = push_key
 
     def report(self, text, desp=''):
         print(text, desp)
-        if self.sc_key:
-            self.ame_api.post('https://sc.ftqq.com/{sc_key}.send'.format(sc_key=self.sc_key), {
-                'text': text,
-                'desp': desp,
-            })
-        else:
-            print("未配置通知发送")
+        try:
+            self.ame_api.get('https://push.xon.one?key={key}&title={title}&description={description}'.format(
+                key=self.push_key,
+                title=text,
+                description=desp,
+            ))
+        except Exception as e:
+            print("通知发送失败", e)
         pass
 
     pass
@@ -392,14 +394,14 @@ if __name__ == '__main__':
     import configparser
 
     cp = configparser.ConfigParser()
-    cp.read('ame_sign.cfg')
+    cp.read('ame_sign.cfg', encoding='UTF-8')
     username = cp.get('USER', 'USERNAME')
     password = cp.get('USER', 'PASSWORD')
-    sc_key = cp.get('NOTIFY', 'SC_KEY')
+    push_key = cp.get('NOTIFY', 'PUSH_KEY')
     taskid = cp.get('TASK', 'TASK_ID')
     content = cp.get('TASK', 'CONTENT')
 
-    ame = Ame(username, password, sc_key)
+    ame = Ame(username, password, push_key)
     if not ame.login():
         print('登陆失败')
         ame.report('登陆失败')
